@@ -1,5 +1,7 @@
 # AgentPlane BitGN Adapter
 
+[![CI](https://github.com/basilisk-labs/agentplane-bitgn-adapter/actions/workflows/ci.yml/badge.svg)](https://github.com/basilisk-labs/agentplane-bitgn-adapter/actions/workflows/ci.yml)
+
 Adapter scaffold for running AgentPlane-backed Codex execution against BitGN
 benchmarks.
 
@@ -12,8 +14,11 @@ around an executor:
 
 ## Status
 
-Experimental. Start with `bitgn/pac1-dev` or a single ECOM task before claiming
-anything about leaderboard quality.
+Experimental, but the first real BitGN smoke has passed: `bitgn/sandbox t01`
+scored `1.00` with `gpt-5.4-mini` through Codex CLI ChatGPT OAuth.
+
+Start with sandbox, then `bitgn/pac1-dev`, then a single ECOM task before
+claiming anything about leaderboard quality.
 
 ## Why this exists
 
@@ -31,20 +36,18 @@ is narrower:
 ## Install
 
 ```bash
-uv venv
-uv pip install -e ".[dev]"
-```
-
-Install BitGN SDK dependencies the same way as the upstream samples:
-
-```bash
-git clone https://github.com/bitgn/sample-agents /tmp/bitgn-sample-agents
-cd /tmp/bitgn-sample-agents/pac1-py
 make sync
 ```
 
-If the generated BitGN Python packages are not visible in this environment,
-run this adapter from the same virtualenv used by the sample agent.
+Install BitGN SDK dependencies from the same Buf registry used by the upstream
+samples:
+
+```bash
+make sync-bitgn
+```
+
+The SDK currently tracks Python 3.14 in the sample agents, so the Make targets
+create a Python 3.14 uv environment.
 
 ## Authentication
 
@@ -70,16 +73,15 @@ export BITGN_API_KEY="..."
 ```bash
 cp .env.example .env.local
 $EDITOR .env.local
-./scripts/check_oauth.sh
-./scripts/bitgn_smoke.sh t01
+make oauth
+make sandbox
 ```
 
-Default settings:
+Sandbox is the first end-to-end check because it does not require a BitGN
+Platform key. PAC1 is the next check:
 
 ```bash
-BENCHMARK_ID=bitgn/pac1-dev
-BITGN_RUNTIME=pcm
-MODEL_ID=gpt-5.4
+make pac1
 ```
 
 ## ECOM smoke
@@ -94,7 +96,7 @@ BITGN_RUNTIME=ecom
 Then run a single task:
 
 ```bash
-./scripts/bitgn_smoke.sh t01
+make ecom
 ```
 
 ## Proof bundle
@@ -115,6 +117,15 @@ The proof bundle captures:
 - each JSON tool command requested by Codex
 - runtime observations, truncated for readability
 - final status
+
+## Documentation
+
+- [Runbook](docs/runbook.md)
+- [Leaderboard plan](docs/leaderboard.md)
+- [Evidence report template](docs/evidence-template.md)
+- [Cost notes](docs/cost.md)
+- [OAuth notes](docs/oauth.md)
+- [Smoke results](docs/test-results.md)
 
 ## Leaderboard realism
 

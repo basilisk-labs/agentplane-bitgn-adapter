@@ -8,12 +8,13 @@ license = { text = "MIT" }
 authors = [{ name = "AgentPlane contributors" }]
 dependencies = [
   "pydantic>=2.8.0",
-  "protobuf>=5.27.0",
+  "protobuf>=7.34.1",
 ]
 
 [project.optional-dependencies]
 bitgn = [
-  "connectrpc>=0.4.0",
+  "bitgn-api-connectrpc-python==0.10.0.1.20260513164305+0d63b5002353",
+  "bitgn-api-protocolbuffers-python==34.1.0.1.20260513164305+0d63b5002353",
 ]
 dev = [
   "pytest>=8.3.0",
@@ -30,6 +31,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[[tool.uv.index]]
+url = "https://buf.build/gen/python"
 
 [tool.ruff]
 line-length = 100

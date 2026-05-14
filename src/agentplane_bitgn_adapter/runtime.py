@@ -20,6 +20,53 @@ class RuntimeSession:
         raise NotImplementedError
 
 
+class SandboxSession(RuntimeSession):
+    def __init__(self, harness_url: str) -> None:
+        from bitgn.vm.mini_connect import MiniRuntimeClientSync
+
+        self.vm = MiniRuntimeClientSync(harness_url)
+
+    def dispatch(self, command: AgentCommand) -> tuple[str, bool]:
+        from bitgn.vm.mini_pb2 import (
+            AnswerRequest,
+            DeleteRequest,
+            ListRequest,
+            OutlineRequest,
+            ReadRequest,
+            SearchRequest,
+            WriteRequest,
+        )
+
+        if command.tool in {"tree", "outline"}:
+            path = command.path or command.root or "/"
+            return _json_message(self.vm.outline(OutlineRequest(path=path))), False
+        if command.tool == "search":
+            return _json_message(
+                self.vm.search(
+                    SearchRequest(
+                        path=command.path or command.root or "/",
+                        pattern=command.pattern,
+                        count=command.limit,
+                    )
+                )
+            ), False
+        if command.tool == "list":
+            return _json_message(self.vm.list(ListRequest(path=command.path or "/"))), False
+        if command.tool == "read":
+            return _json_message(self.vm.read(ReadRequest(path=command.path))), False
+        if command.tool == "write":
+            return _json_message(
+                self.vm.write(WriteRequest(path=command.path, content=command.content))
+            ), False
+        if command.tool == "delete":
+            return _json_message(self.vm.delete(DeleteRequest(path=command.path))), False
+        if command.tool == "answer":
+            return _json_message(
+                self.vm.answer(AnswerRequest(answer=command.message, refs=command.refs))
+            ), True
+        raise ValueError(f"Tool {command.tool} is not supported by sandbox runtime.")
+
+
 class PcmSession(RuntimeSession):
     def __init__(self, harness_url: str) -> None:
         from bitgn.vm.pcm_connect import PcmRuntimeClientSync
@@ -191,6 +238,8 @@ class EcomSession(RuntimeSession):
 
 
 def create_runtime_session(runtime: str, harness_url: str) -> RuntimeSession:
+    if runtime == "sandbox":
+        return SandboxSession(harness_url)
     if runtime == "pcm":
         return PcmSession(harness_url)
     if runtime == "ecom":

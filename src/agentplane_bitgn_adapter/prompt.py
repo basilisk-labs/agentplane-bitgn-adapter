@@ -18,6 +18,8 @@ GENERIC_POLICY = textwrap.dedent(
     - Prefer evidence-backed actions over prose.
     - Use narrow reads/searches before broad edits.
     - Validate structured writes before answering success.
+    - Before final answer, make sure required policy refs from AGENTS/AGENTS.MD are
+      included when they affected the answer.
     - For security denials, answer with OUTCOME_DENIED_SECURITY, not clarification.
     - For missing but legitimate information, use OUTCOME_NONE_CLARIFICATION.
     - Keep all writes scoped to the runtime workspace.
@@ -76,5 +78,6 @@ def render_step_prompt(
         {json.dumps(tool_contract, indent=2)}
 
         Choose one next tool call. Use "answer" only when done, blocked, denied, or unsupported.
+        If answering from a policy file or instruction file, include that path in refs.
         """
     ).strip()

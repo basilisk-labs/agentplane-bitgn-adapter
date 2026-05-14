@@ -15,6 +15,7 @@ OutcomeName = Literal[
 ToolName = Literal[
     "context",
     "tree",
+    "outline",
     "find",
     "search",
     "list",
@@ -63,7 +64,7 @@ class AdapterConfig(BaseModel):
     host: str = "https://api.bitgn.com"
     benchmark_id: str = "bitgn/pac1-dev"
     bitgn_api_key: str = ""
-    runtime: Literal["pcm", "ecom"] = "pcm"
+    runtime: Literal["sandbox", "pcm", "ecom"] = "pcm"
     model: str = "gpt-5.4"
     run_name: str = "AgentPlane BitGN Codex"
     max_steps: int = 30

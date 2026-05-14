@@ -13,7 +13,8 @@ dependencies = [
 
 [package.optional-dependencies]
 bitgn = [
-    { name = "connectrpc" },
+    { name = "bitgn-api-connectrpc-python" },
+    { name = "bitgn-api-protocolbuffers-python" },
 ]
 dev = [
     { name = "pyright" },
@@ -23,8 +24,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "connectrpc", marker = "extra == 'bitgn'", specifier = ">=0.4.0" },
-    { name = "protobuf", specifier = ">=5.27.0" },
+    { name = "bitgn-api-connectrpc-python", marker = "extra == 'bitgn'", specifier = "==0.10.0.1.20260513164305+0d63b5002353" },
+    { name = "bitgn-api-protocolbuffers-python", marker = "extra == 'bitgn'", specifier = "==34.1.0.1.20260513164305+0d63b5002353" },
+    { name = "protobuf", specifier = ">=7.34.1" },
     { name = "pydantic", specifier = ">=2.8.0" },
     { name = "pyright", marker = "extra == 'dev'", specifier = ">=1.1.390" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.0" },
@@ -39,6 +41,42 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ee/67/531ea369ba64dcff5ec9c3402f9f51bf748cec26dde048a2f973a4eea7f5/annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89", size = 16081, upload-time = "2024-05-20T21:33:25.928Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/78/b6/6307fbef88d9b5ee7421e68d78a9f162e0da4900bc5f5793f6d3d0e34fb8/annotated_types-0.7.0-py3-none-any.whl", hash = "sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53", size = 13643, upload-time = "2024-05-20T21:33:24.1Z" },
+]
+
+[[package]]
+name = "bitgn-api-connectrpc-python"
+version = "0.10.0.1.20260513164305+0d63b5002353"
+source = { registry = "https://buf.build/gen/python" }
+dependencies = [
+    { name = "bitgn-api-protocolbuffers-python" },
+    { name = "connectrpc" },
+]
+wheels = [
+    { url = "https://buf.build/gen/python/bitgn-api-connectrpc-python/bitgn_api_connectrpc_python-0.10.0.1.20260513164305+0d63b5002353-py3-none-any.whl", upload-time = "2026-05-13T16:43:05Z" },
+]
+
+[[package]]
+name = "bitgn-api-protocolbuffers-pyi"
+version = "34.1.0.1.20260513164305+0d63b5002353"
+source = { registry = "https://buf.build/gen/python" }
+dependencies = [
+    { name = "protobuf" },
+    { name = "types-protobuf" },
+]
+wheels = [
+    { url = "https://buf.build/gen/python/bitgn-api-protocolbuffers-pyi/bitgn_api_protocolbuffers_pyi-34.1.0.1.20260513164305+0d63b5002353-py3-none-any.whl", upload-time = "2026-05-13T16:43:05Z" },
+]
+
+[[package]]
+name = "bitgn-api-protocolbuffers-python"
+version = "34.1.0.1.20260513164305+0d63b5002353"
+source = { registry = "https://buf.build/gen/python" }
+dependencies = [
+    { name = "bitgn-api-protocolbuffers-pyi" },
+    { name = "protobuf" },
+]
+wheels = [
+    { url = "https://buf.build/gen/python/bitgn-api-protocolbuffers-python/bitgn_api_protocolbuffers_python-34.1.0.1.20260513164305+0d63b5002353-py3-none-any.whl", upload-time = "2026-05-13T16:43:05Z" },
 ]
 
 [[package]]
@@ -364,6 +402,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/6b/8c/b1e1666aef7fc6555094d73ae6cd981701781ae85b97ceefc0eebd0b4668/ruff-0.15.13-py3-none-win32.whl", hash = "sha256:4044f94208b3b05ba0fc4a4abd0558cf4d6459bd18325eead7fd8cc66f909b41", size = 10721455, upload-time = "2026-05-14T13:44:35.697Z" },
     { url = "https://files.pythonhosted.org/packages/ab/a6/870a3e8a50590bb92be184ad928c2922f088b00d9dc5c5ec7b924ee08c22/ruff-0.15.13-py3-none-win_amd64.whl", hash = "sha256:7064884d442b7d477b4e7473d12da7f08851d2b1982763c5d3f388a19468a1a4", size = 11900409, upload-time = "2026-05-14T13:44:30.389Z" },
     { url = "https://files.pythonhosted.org/packages/9b/36/9c015cd052fca743dae8cb2aeb16b551444787467db42ceab0fc968865af/ruff-0.15.13-py3-none-win_arm64.whl", hash = "sha256:2471da9bd1068c8c064b5fd9c0c4b6dddffd6369cb1cd68b29993b1709ff1b21", size = 11179336, upload-time = "2026-05-14T13:44:33.026Z" },
+]
+
+[[package]]
+name = "types-protobuf"
+version = "7.34.1.20260508"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/05/1b/4ae76c732caa3ff5786ac9039d592d526ff2db898da93176c40b63e0b110/types_protobuf-7.34.1.20260508.tar.gz", hash = "sha256:1c93e8c294281b76a5255fc21c747db0004694463ac6ea9866ee06da969fa555", size = 68871, upload-time = "2026-05-08T04:46:17.465Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9e/61/c94036a4690e18059e55451ba5ce6294ea790651a0f5a429ad961e6b9675/types_protobuf-7.34.1.20260508-py3-none-any.whl", hash = "sha256:a5d647381f8651bd505304ed1148b8a7b342781796e0f80e0284c774c2262a09", size = 85984, upload-time = "2026-05-08T04:46:16.422Z" },
 ]
 
 [[package]]
