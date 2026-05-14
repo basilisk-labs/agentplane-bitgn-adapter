@@ -71,13 +71,16 @@ def run_benchmark(config: AdapterConfig, task_filter: list[str]) -> list[TrialRe
                 )
             )
             print(f"=== {trial.task_id} ===", flush=True)
-            run_agent(
-                config=config,
-                harness_url=trial.harness_url,
-                instruction=trial.instruction,
-                task_id=trial.task_id,
-                trial_id=trial.trial_id,
-            )
+            try:
+                run_agent(
+                    config=config,
+                    harness_url=trial.harness_url,
+                    instruction=trial.instruction,
+                    task_id=trial.task_id,
+                    trial_id=trial.trial_id,
+                )
+            except Exception as exc:
+                print(f"{trial.task_id}: agent failed: {type(exc).__name__}: {exc}", flush=True)
             result = client.end_trial(EndTrialRequest(trial_id=trial.trial_id))
             trial_result = TrialResult(
                 task_id=trial.task_id,
@@ -108,13 +111,16 @@ def run_benchmark(config: AdapterConfig, task_filter: list[str]) -> list[TrialRe
             if task_filter and trial.task_id not in task_filter:
                 continue
             print(f"=== {trial.task_id} ===", flush=True)
-            run_agent(
-                config=config,
-                harness_url=trial.harness_url,
-                instruction=trial.instruction,
-                task_id=trial.task_id,
-                trial_id=trial.trial_id,
-            )
+            try:
+                run_agent(
+                    config=config,
+                    harness_url=trial.harness_url,
+                    instruction=trial.instruction,
+                    task_id=trial.task_id,
+                    trial_id=trial.trial_id,
+                )
+            except Exception as exc:
+                print(f"{trial.task_id}: agent failed: {type(exc).__name__}: {exc}", flush=True)
             result = client.end_trial(EndTrialRequest(trial_id=trial.trial_id))
             trial_result = TrialResult(
                 task_id=trial.task_id,

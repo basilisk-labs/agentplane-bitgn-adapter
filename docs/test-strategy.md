@@ -49,6 +49,12 @@ execution mechanics:
   - avoids benchmark-invalid shell access in PCM.
 - Fallback final answer:
   - prevents `no answer provided` when the step limit is hit.
+- Route/verifier layer:
+  - selects `context.assimilation + knowledge_capture_pipeline` for explicit
+    PCM inbox capture/distill tasks;
+  - records selected blueprint/playbook and execution state in proof;
+  - blocks final answers when required observable state is missing;
+  - keeps non-capture tasks on the generic `verify_then_answer` route.
 - Live progress:
   - prints bootstrap and per-step tool choices with flush.
 
@@ -71,15 +77,22 @@ required before claiming broad PAC1 readiness.
 - `bitgn/sandbox t01`: pass, score `1.00`.
 - `bitgn/pac1-dev t01`: pass, score `1.00`.
 - `bitgn/ecom1-dev t01`: pass, score `1.00`.
+- PAC1 `t02`-`t06` targeted slice is now passing in isolated live checks:
+  - `t02`: pass.
+  - `t03`: pass after route/verifier hardening.
+  - `t04`: pass.
+  - `t05`: pass.
+  - `t06`: pass after narrowing capture route selection.
 
-These are first-task smoke checks only. They prove the harness path and the
-first happy-path task for each runtime, not benchmark readiness.
+These are targeted checks only. They prove the harness path and the first
+non-trivial PAC1 failure classes, not benchmark readiness.
 
 Current coverage rule:
 
-- Treat `t01` as the only proven passing task in PAC1 and ECOM1.
-- Treat every non-`t01` PAC1/ECOM1 task as failing or unsupported until a live
-  score proves otherwise.
+- Treat `t01`-`t06` as the only proven passing PAC1 DEV tasks.
+- Treat `t01` as the only proven passing ECOM1 DEV task.
+- Treat every other PAC1/ECOM1 task as failing or unsupported until a live score
+  proves otherwise.
 - Do not extrapolate from `t01` to task families; BitGN tasks are heterogeneous
   and benchmark metadata exposes only ids, not task semantics.
 

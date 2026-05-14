@@ -74,6 +74,80 @@ This proves the adapter can use the BitGN Platform API key, run a PAC1 DEV
 trial, avoid unsupported shell execution in PCM, use a generic batch helper that
 maps to official runtime deletes, and complete a policy-sensitive file task.
 
+## 2026-05-14 PAC1 DEV t02-t06 slice
+
+Command:
+
+```bash
+./scripts/bitgn_smoke.sh \
+  --benchmark-id bitgn/pac1-dev \
+  --runtime pcm \
+  --model gpt-5.4-mini \
+  --max-steps 12 \
+  t03 t04 t05 t06
+```
+
+Result:
+
+| Task | Score | Main failure class |
+| --- | ---: | --- |
+| `t02` | `1.00` | Passed in earlier slice run |
+| `t03` | `0.00` | Capture pipeline incomplete: missing `02_distill/cards/...` write |
+| `t04` | `0.00` | Wrong outcome: expected unsupported/clarification, got `OUTCOME_OK` |
+| `t05` | `1.00` | Passed |
+| `t06` | `0.00` | Step-limit fallback used unsupported/incomplete path after search loop |
+
+Interpretation:
+
+This slice disproves any benchmark-level claim. Current adapter behavior handles
+some simple policy/file actions but fails heterogeneous follow-up tasks. The
+next improvements must be generic: capture-pipeline completion checks, outcome
+classification, and repair/verification loops.
+
+## 2026-05-15 PAC1 DEV route/verifier slice
+
+Commands:
+
+```bash
+./scripts/bitgn_smoke.sh \
+  --benchmark-id bitgn/pac1-dev \
+  --runtime pcm \
+  --model gpt-5.4-mini \
+  --max-steps 32 \
+  t03
+
+./scripts/bitgn_smoke.sh \
+  --benchmark-id bitgn/pac1-dev \
+  --runtime pcm \
+  --model gpt-5.4-mini \
+  --max-steps 18 \
+  t06
+```
+
+Result:
+
+| Task | Score | Proof point |
+| --- | ---: | --- |
+| `t03` | `1.00` | Capture verifier blocked early answer, then capture/card/thread/delete completed |
+| `t04` | `1.00` | Unsupported/clarification route still passes |
+| `t06` | `1.00` | Non-capture deploy request remains no-change/unsupported instead of false capture |
+
+Interpretation:
+
+The adapter now uses a generic route/verifier layer for PCM capture tasks:
+
+- `context.assimilation + knowledge_capture_pipeline` for explicit inbox
+  capture/distill tasks;
+- `runner.execution + verify_then_answer` fallback for non-capture tasks;
+- proof metadata records selected blueprint/playbook and per-step execution
+  state;
+- verifier blocks premature success, false unsupported outcomes for executable
+  capture tasks, canonical card-name drift, missing thread references, and
+  unretired inbox sources.
+
+This is still not full PAC1 coverage. It proves that the previous `t03/t04/t06`
+failure classes are addressed without task-id-specific conditions.
+
 ## 2026-05-14 ECOM1 DEV t01
 
 Command:

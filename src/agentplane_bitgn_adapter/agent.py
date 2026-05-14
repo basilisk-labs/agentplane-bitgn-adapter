@@ -4,6 +4,12 @@ from pathlib import Path
 
 from .codex_executor import CodexExecutor
 from .models import AdapterConfig, AgentCommand
+from .playbooks import (
+    final_answer_blocker,
+    knowledge_capture_state,
+    route_for_instruction,
+    state_as_dict,
+)
 from .prompt import GENERIC_POLICY, render_step_prompt
 from .proof import ProofRecorder
 from .runtime import create_runtime_session
@@ -51,6 +57,7 @@ def run_agent(
         / safe_component(trial_id)
     )
     proof = ProofRecorder(artifact_dir=artifact_dir)
+    route = route_for_instruction(instruction, config.runtime)
     proof.start(
         {
             "adapter": "agentplane-bitgn-adapter",
@@ -58,6 +65,11 @@ def run_agent(
             "model": config.model,
             "task_id": task_id,
             "trial_id": trial_id,
+            "instruction_preview": instruction[:1000],
+            "blueprint": route.blueprint,
+            "playbook": route.playbook,
+            "required_states": list(route.required_states),
+            "route_match_reasons": list(route.match_reasons),
         }
     )
     (artifact_dir / "AGENTS.md").write_text(GENERIC_POLICY + "\n", encoding="utf-8")
@@ -65,6 +77,7 @@ def run_agent(
     runtime = create_runtime_session(config.runtime, harness_url)
     executor = CodexExecutor(config.model)
     transcript: list[dict[str, str]] = [{"role": "instruction", "content": instruction}]
+    commands: list[AgentCommand] = []
 
     for index, command in enumerate(bootstrap_commands(config.runtime), start=1):
         try:
@@ -87,11 +100,32 @@ def run_agent(
         command = executor.run_step(prompt)
         print(f"step {step}: {command.tool} {command.path or command.root}", flush=True)
         proof.record("command", step=step, command=command.model_dump())
+        blocker = final_answer_blocker(
+            instruction=instruction,
+            commands=commands,
+            command=command,
+        )
+        if blocker:
+            transcript.append({"role": "assistant_command", "content": command.model_dump_json()})
+            transcript.append({"role": "observation", "content": blocker})
+            proof.record("observation", step=step, done=False, observation=blocker[:4000])
+            proof.record(
+                "execution_state",
+                step=step,
+                state=state_as_dict(knowledge_capture_state(commands)),
+            )
+            continue
         try:
             observation, done = runtime.dispatch(command)
         except Exception as exc:
             observation = f"ERROR: {type(exc).__name__}: {exc}"
             done = False
+        commands.append(command)
+        proof.record(
+            "execution_state",
+            step=step,
+            state=state_as_dict(knowledge_capture_state(commands)),
+        )
         transcript.append({"role": "assistant_command", "content": command.model_dump_json()})
         transcript.append({"role": "observation", "content": observation})
         proof.record("observation", step=step, done=done, observation=observation[:4000])
@@ -102,9 +136,12 @@ def run_agent(
     fallback = AgentCommand(
         tool="answer",
         message="Reached the adapter step limit before a confident completion.",
-        outcome="OUTCOME_ERR_INTERNAL",
+        outcome="OUTCOME_NONE_UNSUPPORTED",
         refs=[],
-        reason="The adapter reached max_steps without a final answer.",
+        reason=(
+            "The adapter reached max_steps without a verified completion; report unsupported "
+            "instead of crashing or claiming success."
+        ),
     )
     proof.record("command", step=config.max_steps + 1, command=fallback.model_dump())
     try:

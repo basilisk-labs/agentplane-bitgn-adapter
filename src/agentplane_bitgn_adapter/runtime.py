@@ -21,7 +21,27 @@ class RuntimeSession:
 
 
 def preferred_path(command: AgentCommand) -> str:
-    return command.path or command.root or "/"
+    path = command.path or command.root or "/"
+    return normalize_workspace_path(path)
+
+
+def normalize_workspace_path(path: str) -> str:
+    if not path:
+        return path
+    if path.startswith("/Users/") or path.startswith("/tmp/") or path.startswith("/private/"):
+        for marker in (
+            "/00_inbox/",
+            "/01_capture/",
+            "/02_distill/",
+            "/03_publish/",
+            "/90_memory/",
+            "/99_process/",
+        ):
+            index = path.find(marker)
+            if index >= 0:
+                return path[index:]
+        return "/"
+    return path
 
 
 def batch_result(items: list[dict[str, str]]) -> str:
@@ -59,20 +79,32 @@ class SandboxSession(RuntimeSession):
                 )
             ), False
         if command.tool == "list":
-            return _json_message(self.vm.list(ListRequest(path=command.path or "/"))), False
+            return _json_message(
+                self.vm.list(ListRequest(path=normalize_workspace_path(command.path or "/")))
+            ), False
         if command.tool == "read":
-            return _json_message(self.vm.read(ReadRequest(path=command.path))), False
+            return _json_message(
+                self.vm.read(ReadRequest(path=normalize_workspace_path(command.path)))
+            ), False
         if command.tool == "write":
             return _json_message(
-                self.vm.write(WriteRequest(path=command.path, content=command.content))
+                self.vm.write(
+                    WriteRequest(
+                        path=normalize_workspace_path(command.path),
+                        content=command.content,
+                    )
+                )
             ), False
         if command.tool == "delete":
-            return _json_message(self.vm.delete(DeleteRequest(path=command.path))), False
+            return _json_message(
+                self.vm.delete(DeleteRequest(path=normalize_workspace_path(command.path)))
+            ), False
         if command.tool == "delete_many":
             items = []
             for path in command.paths:
-                self.vm.delete(DeleteRequest(path=path))
-                items.append({"path": path, "status": "deleted"})
+                normalized = normalize_workspace_path(path)
+                self.vm.delete(DeleteRequest(path=normalized))
+                items.append({"path": normalized, "status": "deleted"})
             return batch_result(items), False
         if command.tool == "answer":
             return _json_message(
@@ -136,33 +168,47 @@ class PcmSession(RuntimeSession):
                 )
             ), False
         if command.tool == "list":
-            return _json_message(self.vm.list(ListRequest(name=command.path))), False
+            return _json_message(
+                self.vm.list(ListRequest(name=normalize_workspace_path(command.path)))
+            ), False
         if command.tool == "read":
             return _json_message(
                 self.vm.read(
                     ReadRequest(
-                        path=command.path,
+                        path=normalize_workspace_path(command.path),
                         start_line=command.start_line,
                         end_line=command.end_line,
                     )
                 )
             ), False
         if command.tool == "write":
-            result = self.vm.write(WriteRequest(path=command.path, content=command.content))
+            result = self.vm.write(
+                WriteRequest(path=normalize_workspace_path(command.path), content=command.content)
+            )
             return _json_message(result), False
         if command.tool == "delete":
-            return _json_message(self.vm.delete(DeleteRequest(path=command.path))), False
+            return _json_message(
+                self.vm.delete(DeleteRequest(path=normalize_workspace_path(command.path)))
+            ), False
         if command.tool == "delete_many":
             items = []
             for path in command.paths:
-                self.vm.delete(DeleteRequest(path=path))
-                items.append({"path": path, "status": "deleted"})
+                normalized = normalize_workspace_path(path)
+                self.vm.delete(DeleteRequest(path=normalized))
+                items.append({"path": normalized, "status": "deleted"})
             return batch_result(items), False
         if command.tool == "mkdir":
-            return _json_message(self.vm.mk_dir(MkDirRequest(path=command.path))), False
+            return _json_message(
+                self.vm.mk_dir(MkDirRequest(path=normalize_workspace_path(command.path)))
+            ), False
         if command.tool == "move":
             return _json_message(
-                self.vm.move(MoveRequest(from_name=command.from_name, to_name=command.to_name))
+                self.vm.move(
+                    MoveRequest(
+                        from_name=normalize_workspace_path(command.from_name),
+                        to_name=normalize_workspace_path(command.to_name),
+                    )
+                )
             ), False
         if command.tool == "answer":
             return _json_message(
@@ -234,30 +280,39 @@ class EcomSession(RuntimeSession):
                 )
             ), False
         if command.tool == "list":
-            return _json_message(self.vm.list(ListRequest(path=command.path))), False
+            return _json_message(
+                self.vm.list(ListRequest(path=normalize_workspace_path(command.path)))
+            ), False
         if command.tool == "read":
             return _json_message(
                 self.vm.read(
                     ReadRequest(
-                        path=command.path,
+                        path=normalize_workspace_path(command.path),
                         start_line=command.start_line,
                         end_line=command.end_line,
                     )
                 )
             ), False
         if command.tool == "write":
-            result = self.vm.write(WriteRequest(path=command.path, content=command.content))
+            result = self.vm.write(
+                WriteRequest(path=normalize_workspace_path(command.path), content=command.content)
+            )
             return _json_message(result), False
         if command.tool == "delete":
-            return _json_message(self.vm.delete(DeleteRequest(path=command.path))), False
+            return _json_message(
+                self.vm.delete(DeleteRequest(path=normalize_workspace_path(command.path)))
+            ), False
         if command.tool == "delete_many":
             items = []
             for path in command.paths:
-                self.vm.delete(DeleteRequest(path=path))
-                items.append({"path": path, "status": "deleted"})
+                normalized = normalize_workspace_path(path)
+                self.vm.delete(DeleteRequest(path=normalized))
+                items.append({"path": normalized, "status": "deleted"})
             return batch_result(items), False
         if command.tool == "stat":
-            return _json_message(self.vm.stat(StatRequest(path=command.path))), False
+            return _json_message(
+                self.vm.stat(StatRequest(path=normalize_workspace_path(command.path)))
+            ), False
         if command.tool == "exec":
             return _json_message(
                 self.vm.exec(

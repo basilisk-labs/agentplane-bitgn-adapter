@@ -1,4 +1,8 @@
-from agentplane_bitgn_adapter.prompt import allowed_tool_contract, render_step_prompt
+from agentplane_bitgn_adapter.prompt import (
+    allowed_tool_contract,
+    render_step_prompt,
+    runtime_hints,
+)
 
 
 def test_prompt_contains_runtime_instruction_and_json_contract() -> None:
@@ -24,3 +28,9 @@ def test_ecom_tool_contract_allows_exec() -> None:
     contract = allowed_tool_contract("ecom")
     assert "exec" in contract["tool"]
     assert "stdin" in contract
+
+
+def test_pcm_hints_include_capture_pipeline_completion() -> None:
+    hints = runtime_hints("pcm")
+    assert "write the distilled card" in hints
+    assert "update the relevant 02_distill/threads" in hints
