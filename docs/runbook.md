@@ -51,8 +51,8 @@ make ecom
 
 Check:
 
-- `.agentplane-bitgn/<task-id>/AGENTS.md`
-- `.agentplane-bitgn/<task-id>/proof.json`
+- `.agentplane-bitgn/<benchmark-id>/<runtime>/<task-id>/<trial-id>/AGENTS.md`
+- `.agentplane-bitgn/<benchmark-id>/<runtime>/<task-id>/<trial-id>/proof.json`
 - terminal score and `score_detail`
 
 ## 8. Full run gate

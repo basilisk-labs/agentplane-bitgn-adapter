@@ -20,6 +20,14 @@ class RuntimeSession:
         raise NotImplementedError
 
 
+def preferred_path(command: AgentCommand) -> str:
+    return command.path or command.root or "/"
+
+
+def batch_result(items: list[dict[str, str]]) -> str:
+    return json.dumps({"items": items}, indent=2, sort_keys=True)
+
+
 class SandboxSession(RuntimeSession):
     def __init__(self, harness_url: str) -> None:
         from bitgn.vm.mini_connect import MiniRuntimeClientSync
@@ -38,8 +46,8 @@ class SandboxSession(RuntimeSession):
         )
 
         if command.tool in {"tree", "outline"}:
-            path = command.path or command.root or "/"
-            return _json_message(self.vm.outline(OutlineRequest(path=path))), False
+            result = self.vm.outline(OutlineRequest(path=preferred_path(command)))
+            return _json_message(result), False
         if command.tool == "search":
             return _json_message(
                 self.vm.search(
@@ -60,6 +68,12 @@ class SandboxSession(RuntimeSession):
             ), False
         if command.tool == "delete":
             return _json_message(self.vm.delete(DeleteRequest(path=command.path))), False
+        if command.tool == "delete_many":
+            items = []
+            for path in command.paths:
+                self.vm.delete(DeleteRequest(path=path))
+                items.append({"path": path, "status": "deleted"})
+            return batch_result(items), False
         if command.tool == "answer":
             return _json_message(
                 self.vm.answer(AnswerRequest(answer=command.message, refs=command.refs))
@@ -99,16 +113,26 @@ class PcmSession(RuntimeSession):
         if command.tool == "context":
             return _json_message(self.vm.context(ContextRequest())), False
         if command.tool == "tree":
-            result = self.vm.tree(TreeRequest(root=command.root, level=command.level))
+            result = self.vm.tree(TreeRequest(root=preferred_path(command), level=command.level))
             return _json_message(result), False
         if command.tool == "find":
             return _json_message(
-                self.vm.find(FindRequest(root=command.root, name=command.name, limit=command.limit))
+                self.vm.find(
+                    FindRequest(
+                        root=preferred_path(command),
+                        name=command.name,
+                        limit=command.limit,
+                    )
+                )
             ), False
         if command.tool == "search":
             return _json_message(
                 self.vm.search(
-                    SearchRequest(root=command.root, pattern=command.pattern, limit=command.limit)
+                    SearchRequest(
+                        root=preferred_path(command),
+                        pattern=command.pattern,
+                        limit=command.limit,
+                    )
                 )
             ), False
         if command.tool == "list":
@@ -128,6 +152,12 @@ class PcmSession(RuntimeSession):
             return _json_message(result), False
         if command.tool == "delete":
             return _json_message(self.vm.delete(DeleteRequest(path=command.path))), False
+        if command.tool == "delete_many":
+            items = []
+            for path in command.paths:
+                self.vm.delete(DeleteRequest(path=path))
+                items.append({"path": path, "status": "deleted"})
+            return batch_result(items), False
         if command.tool == "mkdir":
             return _json_message(self.vm.mk_dir(MkDirRequest(path=command.path))), False
         if command.tool == "move":
@@ -180,13 +210,13 @@ class EcomSession(RuntimeSession):
         if command.tool == "context":
             return _json_message(self.vm.context(ContextRequest())), False
         if command.tool == "tree":
-            result = self.vm.tree(TreeRequest(root=command.root, level=command.level))
+            result = self.vm.tree(TreeRequest(root=preferred_path(command), level=command.level))
             return _json_message(result), False
         if command.tool == "find":
             return _json_message(
                 self.vm.find(
                     FindRequest(
-                        root=command.root,
+                        root=preferred_path(command),
                         name=command.name,
                         kind=NodeKind.NODE_KIND_UNSPECIFIED,
                         limit=command.limit,
@@ -196,7 +226,11 @@ class EcomSession(RuntimeSession):
         if command.tool == "search":
             return _json_message(
                 self.vm.search(
-                    SearchRequest(root=command.root, pattern=command.pattern, limit=command.limit)
+                    SearchRequest(
+                        root=preferred_path(command),
+                        pattern=command.pattern,
+                        limit=command.limit,
+                    )
                 )
             ), False
         if command.tool == "list":
@@ -216,6 +250,12 @@ class EcomSession(RuntimeSession):
             return _json_message(result), False
         if command.tool == "delete":
             return _json_message(self.vm.delete(DeleteRequest(path=command.path))), False
+        if command.tool == "delete_many":
+            items = []
+            for path in command.paths:
+                self.vm.delete(DeleteRequest(path=path))
+                items.append({"path": path, "status": "deleted"})
+            return batch_result(items), False
         if command.tool == "stat":
             return _json_message(self.vm.stat(StatRequest(path=command.path))), False
         if command.tool == "exec":

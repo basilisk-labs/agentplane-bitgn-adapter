@@ -77,6 +77,9 @@ make oauth
 make sandbox
 ```
 
+`scripts/bitgn_smoke.sh` loads `.env` and then `.env.local`; keep secrets in
+one of those ignored files, not in committed config.
+
 Sandbox is the first end-to-end check because it does not require a BitGN
 Platform key. PAC1 is the next check:
 
@@ -104,7 +107,7 @@ make ecom
 Each trial writes:
 
 ```text
-.agentplane-bitgn/<task-id>/
+.agentplane-bitgn/<benchmark-id>/<runtime>/<task-id>/<trial-id>/
   AGENTS.md
   proof.json
 ```
@@ -121,6 +124,7 @@ The proof bundle captures:
 ## Documentation
 
 - [Runbook](docs/runbook.md)
+- [Test strategy](docs/test-strategy.md)
 - [Leaderboard plan](docs/leaderboard.md)
 - [Evidence report template](docs/evidence-template.md)
 - [Cost notes](docs/cost.md)

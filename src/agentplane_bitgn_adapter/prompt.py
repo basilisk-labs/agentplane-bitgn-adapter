@@ -27,16 +27,8 @@ GENERIC_POLICY = textwrap.dedent(
 ).strip()
 
 
-def render_step_prompt(
-    *,
-    benchmark_instruction: str,
-    transcript: list[dict[str, str]],
-    runtime: str,
-    step: int,
-) -> str:
-    tool_contract = {
-        "tool": "one of context, tree, find, search, list, read, write, delete, mkdir, move, "
-        "stat, exec, answer",
+def allowed_tool_contract(runtime: str) -> dict[str, str]:
+    base = {
         "current_state": "short state summary",
         "reason": "why this is the next action",
         "path": "file path for list/read/write/delete/stat",
@@ -44,19 +36,47 @@ def render_step_prompt(
         "name": "name for find",
         "pattern": "pattern for search",
         "content": "write content",
+        "paths": "multiple paths for delete_many",
         "start_line": "optional integer",
         "end_line": "optional integer",
         "level": "tree depth",
         "limit": "search/find limit",
         "from_name": "move source",
         "to_name": "move destination",
-        "args": "exec args for ecom",
-        "stdin": "exec stdin, especially SQL for /bin/sql",
         "message": "final answer message when tool=answer",
         "refs": "grounding refs when tool=answer",
         "outcome": "OUTCOME_OK, OUTCOME_DENIED_SECURITY, OUTCOME_NONE_CLARIFICATION, "
         "OUTCOME_NONE_UNSUPPORTED, or OUTCOME_ERR_INTERNAL",
     }
+    if runtime == "sandbox":
+        return {
+            "tool": "one of tree, search, list, read, write, delete, delete_many, answer",
+            **base,
+        }
+    if runtime == "pcm":
+        return {
+            "tool": "one of context, tree, find, search, list, read, write, delete, "
+            "delete_many, mkdir, move, answer. Do not use exec or shell commands in PCM. "
+            "Use delete_many for several known files.",
+            **base,
+        }
+    return {
+        "tool": "one of tree, find, search, list, read, write, delete, delete_many, stat, "
+        "exec, answer",
+        **base,
+        "args": "exec args for ecom only",
+        "stdin": "exec stdin, especially SQL for /bin/sql",
+    }
+
+
+def render_step_prompt(
+    *,
+    benchmark_instruction: str,
+    transcript: list[dict[str, str]],
+    runtime: str,
+    step: int,
+) -> str:
+    tool_contract = allowed_tool_contract(runtime)
     transcript_text = "\n\n".join(
         f"## {item['role']}\n{item['content']}" for item in transcript[-12:]
     )
@@ -79,5 +99,7 @@ def render_step_prompt(
 
         Choose one next tool call. Use "answer" only when done, blocked, denied, or unsupported.
         If answering from a policy file or instruction file, include that path in refs.
+        Use only tools listed for the active runtime. Never invent shell access in PCM.
+        If multiple exact files must be deleted, prefer one delete_many call with paths.
         """
     ).strip()

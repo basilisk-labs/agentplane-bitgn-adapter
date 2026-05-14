@@ -22,6 +22,7 @@ ToolName = Literal[
     "read",
     "write",
     "delete",
+    "delete_many",
     "mkdir",
     "move",
     "stat",
@@ -35,6 +36,7 @@ class AgentCommand(BaseModel):
     current_state: str = ""
     reason: str = ""
     path: str = ""
+    paths: list[str] = Field(default_factory=list)
     root: str = "/"
     name: str = ""
     pattern: str = ""

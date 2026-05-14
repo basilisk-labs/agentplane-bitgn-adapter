@@ -46,7 +46,7 @@ def run_benchmark(config: AdapterConfig, task_filter: list[str]) -> list[TrialRe
     )
 
     client = HarnessServiceClientSync(config.host)
-    print("Connecting to BitGN", client.status(StatusRequest()))
+    print("Connecting to BitGN", client.status(StatusRequest()), flush=True)
     benchmark = client.get_benchmark(GetBenchmarkRequest(benchmark_id=config.benchmark_id))
     print(
         textwrap.dedent(
@@ -56,7 +56,8 @@ def run_benchmark(config: AdapterConfig, task_filter: list[str]) -> list[TrialRe
             Runtime: {config.runtime}
             Model: {config.model}
             """
-        ).strip()
+        ).strip(),
+        flush=True,
     )
     results: list[TrialResult] = []
     if config.benchmark_id == "bitgn/sandbox":
@@ -69,7 +70,7 @@ def run_benchmark(config: AdapterConfig, task_filter: list[str]) -> list[TrialRe
                     task_id=task.task_id,
                 )
             )
-            print(f"=== {trial.task_id} ===")
+            print(f"=== {trial.task_id} ===", flush=True)
             run_agent(
                 config=config,
                 harness_url=trial.harness_url,
@@ -87,11 +88,11 @@ def run_benchmark(config: AdapterConfig, task_filter: list[str]) -> list[TrialRe
             )
             results.append(trial_result)
             if result.score_available:
-                print(f"{trial.task_id}: {result.score:0.2f}")
+                print(f"{trial.task_id}: {result.score:0.2f}", flush=True)
                 if result.score_detail:
-                    print("\n".join(result.score_detail))
+                    print("\n".join(result.score_detail), flush=True)
             else:
-                print(f"{trial.task_id}: score not available")
+                print(f"{trial.task_id}: score not available", flush=True)
         return results
 
     run = client.start_run(
@@ -106,7 +107,7 @@ def run_benchmark(config: AdapterConfig, task_filter: list[str]) -> list[TrialRe
             trial = client.start_trial(StartTrialRequest(trial_id=trial_id))
             if task_filter and trial.task_id not in task_filter:
                 continue
-            print(f"=== {trial.task_id} ===")
+            print(f"=== {trial.task_id} ===", flush=True)
             run_agent(
                 config=config,
                 harness_url=trial.harness_url,
@@ -124,11 +125,11 @@ def run_benchmark(config: AdapterConfig, task_filter: list[str]) -> list[TrialRe
             )
             results.append(trial_result)
             if result.score_available:
-                print(f"{trial.task_id}: {result.score:0.2f}")
+                print(f"{trial.task_id}: {result.score:0.2f}", flush=True)
                 if result.score_detail:
-                    print("\n".join(result.score_detail))
+                    print("\n".join(result.score_detail), flush=True)
             else:
-                print(f"{trial.task_id}: score not available")
+                print(f"{trial.task_id}: score not available", flush=True)
     finally:
         client.submit_run(SubmitRunRequest(run_id=run.run_id, force=True))
     return results

@@ -9,6 +9,10 @@ from .proof import ProofRecorder
 from .runtime import create_runtime_session
 
 
+def safe_component(value: str) -> str:
+    return "".join(char if char.isalnum() or char in "-_." else "_" for char in value)
+
+
 def bootstrap_commands(runtime: str) -> list[AgentCommand]:
     if runtime == "sandbox":
         return [
@@ -39,7 +43,13 @@ def run_agent(
     task_id: str,
     trial_id: str,
 ) -> None:
-    artifact_dir = Path(config.artifact_dir) / task_id
+    artifact_dir = (
+        Path(config.artifact_dir)
+        / safe_component(config.benchmark_id)
+        / config.runtime
+        / safe_component(task_id)
+        / safe_component(trial_id)
+    )
     proof = ProofRecorder(artifact_dir=artifact_dir)
     proof.start(
         {
@@ -63,6 +73,7 @@ def run_agent(
             observation = f"ERROR: {type(exc).__name__}: {exc}"
         proof.record("bootstrap_command", step=index, command=command.model_dump())
         proof.record("bootstrap_observation", step=index, observation=observation[:4000])
+        print(f"bootstrap {index}: {command.tool} {command.path or command.root}", flush=True)
         transcript.append({"role": "bootstrap_command", "content": command.model_dump_json()})
         transcript.append({"role": "observation", "content": observation})
 
@@ -74,6 +85,7 @@ def run_agent(
             step=step,
         )
         command = executor.run_step(prompt)
+        print(f"step {step}: {command.tool} {command.path or command.root}", flush=True)
         proof.record("command", step=step, command=command.model_dump())
         try:
             observation, done = runtime.dispatch(command)
@@ -87,4 +99,22 @@ def run_agent(
             proof.finish(status="answered", steps=step)
             return
 
+    fallback = AgentCommand(
+        tool="answer",
+        message="Reached the adapter step limit before a confident completion.",
+        outcome="OUTCOME_ERR_INTERNAL",
+        refs=[],
+        reason="The adapter reached max_steps without a final answer.",
+    )
+    proof.record("command", step=config.max_steps + 1, command=fallback.model_dump())
+    try:
+        observation, _ = runtime.dispatch(fallback)
+    except Exception as exc:
+        observation = f"ERROR: {type(exc).__name__}: {exc}"
+    proof.record(
+        "observation",
+        step=config.max_steps + 1,
+        done=True,
+        observation=observation[:4000],
+    )
     proof.finish(status="max_steps_exhausted", steps=config.max_steps)
