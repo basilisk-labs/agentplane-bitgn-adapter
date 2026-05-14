@@ -14,11 +14,15 @@ around an executor:
 
 ## Status
 
-Experimental, but the first real BitGN smoke has passed: `bitgn/sandbox t01`
-scored `1.00` with `gpt-5.4-mini` through Codex CLI ChatGPT OAuth.
+Experimental. Current proven coverage is deliberately narrow:
 
-Start with sandbox, then `bitgn/pac1-dev`, then a single ECOM task before
-claiming anything about leaderboard quality.
+- `bitgn/sandbox t01`: pass, score `1.00`.
+- `bitgn/pac1-dev t01`: pass, score `1.00`.
+- `bitgn/ecom1-dev t01`: pass, score `1.00`.
+
+All non-`t01` PAC1 and ECOM1 tasks are not passing in current evidence and must
+be treated as failing/unsupported until a live run proves otherwise. This repo
+is not leaderboard-ready.
 
 ## Why this exists
 
@@ -125,6 +129,7 @@ The proof bundle captures:
 
 - [Runbook](docs/runbook.md)
 - [Test strategy](docs/test-strategy.md)
+- [Coverage matrix](docs/coverage.md)
 - [Leaderboard plan](docs/leaderboard.md)
 - [Evidence report template](docs/evidence-template.md)
 - [Cost notes](docs/cost.md)

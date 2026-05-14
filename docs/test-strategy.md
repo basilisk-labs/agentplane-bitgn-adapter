@@ -72,8 +72,16 @@ required before claiming broad PAC1 readiness.
 - `bitgn/pac1-dev t01`: pass, score `1.00`.
 - `bitgn/ecom1-dev t01`: pass, score `1.00`.
 
-These are single-task smoke checks. They prove the harness path and the first
-happy-path task for each runtime, not full benchmark readiness.
+These are first-task smoke checks only. They prove the harness path and the
+first happy-path task for each runtime, not benchmark readiness.
+
+Current coverage rule:
+
+- Treat `t01` as the only proven passing task in PAC1 and ECOM1.
+- Treat every non-`t01` PAC1/ECOM1 task as failing or unsupported until a live
+  score proves otherwise.
+- Do not extrapolate from `t01` to task families; BitGN tasks are heterogeneous
+  and benchmark metadata exposes only ids, not task semantics.
 
 ## Claim threshold
 
@@ -95,3 +103,4 @@ Invalid claim until broader evidence exists:
 - AgentPlane is leaderboard-ready.
 - AgentPlane improves score over raw Codex.
 - AgentPlane is a model.
+- PAC1 or ECOM1 is passing beyond `t01`.
