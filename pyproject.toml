@@ -1,0 +1,49 @@
+[project]
+name = "agentplane-bitgn-adapter"
+version = "0.1.0"
+description = "BitGN adapter for benchmarking AgentPlane-backed Codex execution."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "AgentPlane contributors" }]
+dependencies = [
+  "pydantic>=2.8.0",
+  "protobuf>=5.27.0",
+]
+
+[project.optional-dependencies]
+bitgn = [
+  "connectrpc>=0.4.0",
+]
+dev = [
+  "pytest>=8.3.0",
+  "ruff>=0.8.0",
+  "pyright>=1.1.390",
+]
+
+[project.scripts]
+agentplane-bitgn = "agentplane_bitgn_adapter.cli:main"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "basic"
+include = ["src"]
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
